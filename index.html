@@ -357,7 +357,8 @@ body { font-family:'Outfit',sans-serif; background:var(--bg); color:var(--t1); h
 .edit-ta {
   display: none; width: 100%; background: transparent; color: var(--t1);
   border: none; outline: none; font-family:'JetBrains Mono',monospace;
-  font-size: 13px; line-height: 1.85; resize: none; padding: 18px; min-height: 80px;
+  font-size: 13px; line-height: 1.85; resize: vertical; padding: 18px; min-height: 200px;
+  overflow-y: auto;
 }
 
 .out-panel { border-top: 1px solid var(--bd); display: none; }
@@ -440,7 +441,38 @@ body { font-family:'Outfit',sans-serif; background:var(--bg); color:var(--t1); h
 
 @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 * { scrollbar-width: thin; scrollbar-color: var(--bd2) transparent; }
-@media(max-width:680px) { .sidebar{display:none} .eg-grid{grid-template-columns:1fr 1fr} }
+/* ── MOBILE SIDEBAR DRAWER ── */
+.sidebar-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6); z-index: 100;
+  backdrop-filter: blur(2px);
+}
+.sidebar-overlay.open { display: block; }
+
+.mob-menu-btn {
+  display: none;
+  background: none; border: none; color: var(--t2);
+  font-size: 18px; cursor: pointer; padding: 6px 8px;
+  border-radius: 8px; transition: color 0.15s, background 0.15s;
+  align-items: center; justify-content: center;
+}
+.mob-menu-btn:hover { color: var(--t1); background: var(--s3); }
+
+@media(max-width:680px) {
+  .mob-menu-btn { display: flex; }
+  .eg-grid { grid-template-columns: 1fr 1fr; }
+  .sidebar {
+    position: fixed; left: -280px; top: 0; bottom: 0;
+    z-index: 101; transition: left 0.28s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+  }
+  .sidebar.mob-open { left: 0; }
+  .msgs { padding: 0 14px; }
+  .empty { padding: 24px 14px; }
+  .input-zone { padding: 10px 12px 12px; }
+  .topbar { padding: 0 14px; }
+  .umsg { max-width: 88%; }
+}
 </style>
 </head>
 <body>
@@ -514,10 +546,12 @@ body { font-family:'Outfit',sans-serif; background:var(--bg); color:var(--t1); h
 
 <!-- ════════ APP SCREEN ════════ -->
 <div id="appScreen">
+  <!-- Mobile sidebar overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
   <div class="app-layout">
 
     <!-- SIDEBAR -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
       <div class="brand">
         <div class="brand-icon">💻</div>
         <div class="brand-name">StackPilot</div>
@@ -564,6 +598,9 @@ body { font-family:'Outfit',sans-serif; background:var(--bg); color:var(--t1); h
     <div class="main">
       <div class="topbar">
         <div class="topbar-left">
+          <button class="mob-menu-btn" onclick="openSidebar()" title="Menu">
+            <i class="fas fa-bars"></i>
+          </button>
           <div class="status-dot" id="statusDot"></div>
           <span class="topbar-status" id="topbarStatus">Ready</span>
         </div>
@@ -761,6 +798,7 @@ function renderHistory(chats) {
 }
 
 async function loadChat(id) {
+  closeSidebar();
   try {
     const r = await apiFetch('/history/' + id);
     const { chat } = await r.json();
@@ -885,15 +923,10 @@ function makeCard(code, lang) {
       <div class="card-btns">
         <button type="button" class="cbtn" onclick="editCard('${id}')"><i class="fas fa-pen"></i> Edit</button>
         <button type="button" class="cbtn" onclick="copyCard('${id}')"><i class="fas fa-copy"></i> Copy</button>
-        <button type="button" class="cbtn run" data-cardid="${id}" id="${id}-runbtn"><i class="fas fa-play"></i> Run</button>
       </div>
     </div>
     <div class="code-pre" id="${id}-pre"><pre><code class="language-python" id="${id}-code">${esc(code)}</code></pre></div>
     <textarea class="edit-ta" id="${id}-ta">${code}</textarea>
-    <div class="out-panel" id="${id}-out">
-      <div class="out-header"><i class="fas fa-terminal"></i>&nbsp; Output</div>
-      <div class="out-body" id="${id}-res"></div>
-    </div>
   </div>`;
 }
 
@@ -912,55 +945,32 @@ function editCard(id) {
     Prism.highlightElement(document.getElementById(id + '-code'));
     pre.style.display = ''; ta.style.display = 'none';
   } else {
-    pre.style.display = 'none'; ta.style.display = 'block'; ta.focus();
+    pre.style.display = 'none';
+    ta.style.display = 'block';
+    // Auto-size to fit content
+    ta.style.height = 'auto';
+    ta.style.height = Math.max(200, ta.scrollHeight) + 'px';
+    ta.addEventListener('input', function onInput() {
+      this.style.height = 'auto';
+      this.style.height = Math.max(200, this.scrollHeight) + 'px';
+    });
+    ta.focus();
   }
+}
+
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('mob-open');
+  document.getElementById('sidebarOverlay').classList.add('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('mob-open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
 }
 
 function copyCard(id) {
   navigator.clipboard.writeText(document.getElementById(id + '-ta').value)
     .then(() => toast('Copied!'));
 }
-
-// Run button — uses event delegation on document so dynamic cards always work
-document.addEventListener('click', async function(e) {
-  const btn = e.target.closest('.cbtn.run');
-  if (!btn) return;
-
-  e.preventDefault();
-  e.stopPropagation();
-
-  const id  = btn.dataset.cardid;
-  if (!id) return;
-
-  const code = document.getElementById(id + '-ta').value;
-  const out  = document.getElementById(id + '-out');
-  const res  = document.getElementById(id + '-res');
-
-  // Spinner — use textContent trick to avoid re-parsing HTML
-  btn.setAttribute('disabled', 'true');
-  btn.textContent = '► Running...';
-
-  out.classList.add('show');
-  res.className = 'out-body';
-  res.textContent = 'Running…';
-
-  try {
-    const r = await apiFetch('/run', {
-      method: 'POST',
-      body: JSON.stringify({ code, language: currentLang })
-    });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error);
-    res.textContent = d.output || '(no output)';
-  } catch(err) {
-    res.classList.add('err');
-    res.textContent = err.message;
-  }
-
-  // Restore button — do NOT use innerHTML, just textContent
-  btn.removeAttribute('disabled');
-  btn.textContent = '► Run';
-});
 
 /* ═══════════════════════════════
    SEND MESSAGE

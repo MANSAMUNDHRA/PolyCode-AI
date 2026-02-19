@@ -357,8 +357,7 @@ body { font-family:'Outfit',sans-serif; background:var(--bg); color:var(--t1); h
 .edit-ta {
   display: none; width: 100%; background: transparent; color: var(--t1);
   border: none; outline: none; font-family:'JetBrains Mono',monospace;
-  font-size: 13px; line-height: 1.85; resize: vertical; padding: 18px;
-  min-height: 300px; height: auto;
+  font-size: 13px; line-height: 1.85; resize: none; padding: 18px; min-height: 80px;
 }
 
 .out-panel { border-top: 1px solid var(--bd); display: none; }
@@ -611,7 +610,7 @@ body { font-family:'Outfit',sans-serif; background:var(--bg); color:var(--t1); h
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-python.min.js"></script>
 <script>
-const API = 'http://localhost:9000';
+const API = 'https://stackpilot-q9tz.onrender.com';
 let token = localStorage.getItem('token');
 let currentUser = null;
 let currentLang = 'python';
@@ -908,30 +907,12 @@ function updateCard(id, code) {
 function editCard(id) {
   const pre = document.getElementById(id + '-pre');
   const ta  = document.getElementById(id + '-ta');
-  const btn = document.querySelector(`[onclick="editCard('${id}')"]`);
-
   if (ta.style.display === 'block') {
-    // Save mode → apply edits, switch back to highlighted view
     document.getElementById(id + '-code').textContent = ta.value;
     Prism.highlightElement(document.getElementById(id + '-code'));
-    pre.style.display = '';
-    ta.style.display = 'none';
-    if (btn) { btn.innerHTML = '<i class="fas fa-pen"></i> Edit'; }
+    pre.style.display = ''; ta.style.display = 'none';
   } else {
-    // Edit mode → show textarea, auto-size to content
-    pre.style.display = 'none';
-    ta.style.display = 'block';
-    ta.style.height = 'auto';
-    ta.style.height = Math.max(300, ta.scrollHeight) + 'px';
-    ta.focus();
-    // Move cursor to end
-    ta.selectionStart = ta.selectionEnd = ta.value.length;
-    if (btn) { btn.innerHTML = '<i class="fas fa-check"></i> Save'; }
-    // Auto-grow as user types
-    ta.oninput = () => {
-      ta.style.height = 'auto';
-      ta.style.height = Math.max(300, ta.scrollHeight) + 'px';
-    };
+    pre.style.display = 'none'; ta.style.display = 'block'; ta.focus();
   }
 }
 

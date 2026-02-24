@@ -1,4 +1,6 @@
-# StackPilot 💻
+
+
+# PolyCode-AI 💻
 
 > A full-stack AI-powered code generation and execution platform — built from scratch with Node.js, Express, MongoDB, JWT authentication, and the Hugging Face Inference API.
 
@@ -12,17 +14,17 @@
 
 ## What is this?
 
-StackPilot is a **full-stack AI coding assistant** a self-hosted Copilot with a chat interface, multi-language code execution, persistent history, and user authentication.
+PolyCode-AI is a **full-stack AI coding assistant** — a self-hosted Copilot with a chat interface, multi-language code execution, persistent history, and user authentication.
 
 You type a natural language prompt. It streams back real, working code. You run it directly in the browser. Your entire session history is saved to your account.
 
-Built this to understand how real AI-powered products actually work under the hood from LLM API integration to auth flows to safely executing user-submitted code on a server.
+Built this to understand how real AI-powered products actually work under the hood — from LLM API integration to auth flows to safely executing user-submitted code on a server.
 
 ---
 
 ## Live Demo
 
-> Deployed link : https://stackpilot-q9tz.onrender.com
+> Deployed link: [https://polycode-ai.onrender.com](https://polycode-ai.onrender.com)
 
 ---
 
@@ -225,8 +227,8 @@ Running user-submitted code on a server is a real security problem. Here's what 
 
 ```bash
 # Clone
-git clone https://github.com/yourusername/stackpilot
-cd stackpilot
+git clone https://github.com/yourusername/polycode-ai
+cd polycode-ai
 
 # Install dependencies
 npm install
@@ -243,7 +245,7 @@ node server.js
 
 ```env
 HUGGINGFACE_API_KEY=hf_xxxxxxxxxxxxxxxxxxxx
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/stackpilot
+MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/polycode-ai
 JWT_SECRET=any_long_random_string_at_least_32_chars
 PORT=9000
 ```
@@ -257,7 +259,7 @@ PORT=9000
 ## Project Structure
 
 ```
-stackpilot/
+polycode-ai/
 ├── server.js          # Express app — auth, chat, execution, history routes
 ├── index.html         # Single-page frontend — all JS inline, no framework
 ├── package.json
@@ -294,4 +296,8 @@ No `/src`, no `/routes`, no `/controllers` — kept intentionally flat. For a pr
 
 ---
 
+## Connect
 
+Built with curiosity by [Mansha Mundhra] — feel free to reach out or contribute!
+
+---
